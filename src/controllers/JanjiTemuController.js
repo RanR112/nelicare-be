@@ -1,7 +1,7 @@
 const prisma = require("../../prisma/client");
 
 exports.createJanji = async (req, res) => {
-    const { email, nama, nomor, umur, idLayanan } = req.body
+    const { email, nama, nomor, umur, idLayanan, tanggal } = req.body
 
     try {
         const newJanji = await prisma.janjiTemu.create({
@@ -11,6 +11,7 @@ exports.createJanji = async (req, res) => {
                 nama,
                 umur,
                 nomor,
+                tanggal,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             }
