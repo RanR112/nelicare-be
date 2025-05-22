@@ -17,7 +17,7 @@ exports.createJanji = async (req, res) => {
         });
 
         res.json({
-            message: "Request Kanban berhasil dibuat",
+            message: "Janji Temu berhasil dibuat",
             janjiTemu: newJanji,
         });
     } catch (err) {
