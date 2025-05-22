@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  superadmin
+}
+
+enum StatusKunjungan {
+  selesai
+  pending
+  batal
+}
+
+enum JenisKelamin {
+  P
+  L
+}
+
+enum StatusPasien {
+  aktif
+  nonaktif
+}
+
+enum StatusPembayaran {
+  lunas
+  pending
+  batal
+}
+
+enum StatusRekam {
+  selesai
+  kontrol
+  rujuk
+}
+
+enum TransaksiObat {
+  masuk
+  keluar
+}
+
+enum SumberTransaksi {
+  resep
+  supplier
+  expired
+}
+
+model Admin {
+  id        BigInt    @id
+  nama      String
+  email     String
+  password  String
+  role      Role
+  edukasi   Edukasi[]
+  createdAt DateTime? @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+}
+
+model Edukasi {
+  id             BigInt           @id
+  idAdmin        BigInt           @map("id_admin")
+  admin          Admin            @relation(fields: [idAdmin], references: [id])
+  judul          String
+  isi            String
+  layananEdukasi LayananEdukasi[]
+  layanan        Layanan?         @relation("EdukasiToLayanan", fields: [layananId], references: [id])
+  layananId      BigInt?
+  createdAt      DateTime?        @map("created_at")
+  updatedAt      DateTime?        @map("updated_at")
+}
+
+model JadwalImunisasi {
+  id        BigInt    @id
+  idLayanan BigInt    @map("id_layanan")
+  layanan   Layanan   @relation(fields: [idLayanan], references: [id])
+  tanggal   DateTime
+  catatan   String
+  createdAt DateTime? @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+}
+
+model Kunjungan {
+  id             BigInt          @id
+  idPasien       BigInt          @map("id_pasien")
+  pasien         Pasien          @relation(fields: [idPasien], references: [id])
+  idLayanan      BigInt          @map("id_layanan")
+  layanan        Layanan         @relation(fields: [idLayanan], references: [id])
+  tglKunjungan   DateTime        @map("tgl_kunjungan")
+  waktuKunjungan DateTime        @map("waktu_kunjungan")
+  status         StatusKunjungan
+  catatan        String
+  rekamMedis     RekamMedis[]
+  createdAt      DateTime?       @map("created_at")
+  updatedAt      DateTime?       @map("updated_at")
+}
+
+model Layanan {
+  id              BigInt            @id
+  nama            String
+  edukasi         Edukasi[]         @relation("EdukasiToLayanan")
+  layananEdukasi  LayananEdukasi[]
+  jadwalImunisasi JadwalImunisasi[]
+  kunjungan       Kunjungan[]
+  createdAt       DateTime?         @map("created_at")
+  updatedAt       DateTime?         @map("updated_at")
+}
+
+model LayananEdukasi {
+  idEdukasi BigInt    @map("id_edukasi")
+  idLayanan BigInt    @map("id_layanan")
+  edukasi   Edukasi   @relation(fields: [idEdukasi], references: [id])
+  layanan   Layanan   @relation(fields: [idLayanan], references: [id])
+  createdAt DateTime? @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+
+  @@id([idEdukasi, idLayanan])
+}
+
+model Obat {
+  id        BigInt     @id
+  nama      String
+  stok      Int
+  harga     Int
+  resep     Resep[]
+  stokObat  StokObat[]
+  createdAt DateTime?  @map("created_at")
+  updatedAt DateTime?  @map("updated_at")
+}
+
+model Pasien {
+  id           BigInt       @id
+  nama         String
+  noReg        String       @unique @map("no_reg")
+  tglLahir     DateTime     @map("tgl_lahir")
+  alamat       String
+  hp           String
+  jenisKelamin JenisKelamin
+  status       StatusPasien
+  kunjungan    Kunjungan[]
+  createdAt    DateTime?    @map("created_at")
+  updatedAt    DateTime?    @map("updated_at")
+}
+
+model Pembayaran {
+  id         BigInt           @id
+  idRm       BigInt           @map("id_rm")
+  rekamMedis RekamMedis       @relation(fields: [idRm], references: [id])
+  tglBayar   DateTime         @map("tgl_bayar")
+  totalBayar Int              @map("total_bayar")
+  metode     String
+  status     StatusPembayaran
+  createdAt  DateTime?        @map("created_at")
+  updatedAt  DateTime?        @map("updated_at")
+}
+
+model RekamMedis {
+  id          BigInt       @id
+  idKunjungan BigInt       @map("id_kunjungan")
+  kunjungan   Kunjungan    @relation(fields: [idKunjungan], references: [id])
+  keluhan     String
+  diagnosa    String
+  tindakan    String
+  catatan     String
+  status      StatusRekam
+  resep       Resep[]
+  pembayaran  Pembayaran[]
+  createdAt   DateTime?    @map("created_at")
+  updatedAt   DateTime?    @map("updated_at")
+}
+
+model Resep {
+  id          BigInt     @id
+  idRm        BigInt     @map("id_rm")
+  rekamMedis  RekamMedis @relation(fields: [idRm], references: [id])
+  idObat      BigInt     @map("id_obat")
+  obat        Obat       @relation(fields: [idObat], references: [id])
+  jumlah      Int
+  aturanPakai String     @map("aturan_pakai")
+  catatan     String
+  createdAt   DateTime?  @map("created_at")
+  updatedAt   DateTime?  @map("updated_at")
+}
+
+model StokObat {
+  id              BigInt          @id
+  idObat          BigInt          @map("id_obat")
+  obat            Obat            @relation(fields: [idObat], references: [id])
+  tanggal         DateTime
+  jumlah          Int
+  transaksi       TransaksiObat
+  sumberTransaksi SumberTransaksi
+  createdAt       DateTime?       @map("created_at")
+  updatedAt       DateTime?       @map("updated_at")
+}
