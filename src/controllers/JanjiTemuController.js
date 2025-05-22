@@ -1,11 +1,20 @@
 const prisma = require("../../prisma/client");
 
 exports.createJanji = async (req, res) => {
-    const { email, nama, nomor, umur, idLayanan, tanggal } = req.body
+    let { email, nama, nomor, umur, idLayanan, tanggal } = req.body;
 
     try {
+        // Konversi umur dan idLayanan menjadi integer
+        umur = parseInt(umur);
+        idLayanan = parseInt(idLayanan);
+
+        // Validasi jika hasil parse bukan angka
+        if (isNaN(umur) || isNaN(idLayanan)) {
+            return res.status(400).json({ message: "Umur dan idLayanan harus berupa angka." });
+        }
+
         const newJanji = await prisma.janjiTemu.create({
-            data : {
+            data: {
                 idLayanan,
                 email,
                 nama,
