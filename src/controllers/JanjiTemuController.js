@@ -4,13 +4,12 @@ exports.createJanji = async (req, res) => {
     let { email, nama, nomor, umur, idLayanan, tanggal } = req.body;
 
     try {
-        // Konversi umur dan idLayanan menjadi integer
         umur = parseInt(umur);
         idLayanan = parseInt(idLayanan);
+        tanggal = new Date(tanggal);
 
-        // Validasi jika hasil parse bukan angka
-        if (isNaN(umur) || isNaN(idLayanan)) {
-            return res.status(400).json({ message: "Umur dan idLayanan harus berupa angka." });
+        if (isNaN(umur) || isNaN(idLayanan) || isNaN(tanggal.getTime())) {
+            return res.status(400).json({ message: "Umur, idLayanan, dan tanggal harus valid." });
         }
 
         const newJanji = await prisma.janjiTemu.create({
